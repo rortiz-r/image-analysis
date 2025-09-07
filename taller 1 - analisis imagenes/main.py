@@ -22,7 +22,7 @@ class App(tk.Tk):
 
 		self.frames = {} ## Empty array of frames
 
-		for F in (MainView, ArithmeticView):
+		for F in (MainView, ArithmeticView, ArithmeticScalar):
 			frame = F(container, self)
 			self.frames[F] = frame
 			frame.grid(row = 0, column = 0, sticky="nsew")
@@ -63,9 +63,11 @@ class MainView(tk.Frame):
 			('Arial', 14, 'bold'))
 
 		button_1 = ttk.Button(btn_container, text="Aritméticas", style="TButton", command=lambda: self.controller.show_frame(ArithmeticView) ) 
-		button_2 = ttk.Button(btn_container, text="Geométricas") 
+		button_3 = ttk.Button(btn_container, text="Aritméticas con escalar", command=lambda: self.controller.show_frame(ArithmeticScalar)) ##Nombre 
+		button_2 = ttk.Button(btn_container, text="Geométricas")
 		button_1.grid(row=1, column=0, padx=20, pady=50)
 		button_2.grid(row=1, column=1, padx=20, pady=50)
+		button_3.grid(row=1, column=2, padx=20, pady=50)
 
 		
 
@@ -210,8 +212,6 @@ class ArithmeticView(tk.Frame):
 
 		result = np.zeros((M,N,O))
 
-		alpha = 0.5
-
 		result = A * B
 
 		self.show_result(np.clip(result, 0, 255).astype(np.uint8))
@@ -224,6 +224,176 @@ class ArithmeticView(tk.Frame):
 
 	pass
 
+
+class ArithmeticScalar(tk.Frame):
+	def __init__(self, parent, controller):
+		super().__init__(parent)
+		self.controller = controller
+		self.file = None
+		self.image = {}
+		self.image_tk = {}
+		self.scalar = None
+		self.load_widgets()
+
+
+	def load_widgets(self):
+
+		lab = Label(self, text="IMAGELAB", font=("Arial", 28, "bold"),fg="white" ,bg="#222831")
+		lab.pack(side="top", fill="both")
+
+
+		## Sidebar que contendrá los botones en lista de las operaciones a realizar
+		con = tk.Frame(self, bg ="#222831")
+		con.pack(fill='y', side="right")
+		
+		lab = Label(con, text="Operaciones", font=("Arial", 28, "bold"),fg="white" ,bg="#222831")
+		lab.pack(side="top", fill="both")
+
+
+		btn_list_container = tk.Frame(con, bg ="#222831")
+		btn_list_container.grid_columnconfigure(0, weight=1)
+		btn_list_container.pack(fill='y', side="right")
+
+
+		inner = tk.Frame(btn_list_container, bg="#222831")
+		inner.pack(expand=True, fill="y")
+
+
+
+		square_btn = ttk.Button(inner, text="Funcion cuadrada", style="TButton", command=self.square_scalar).pack(pady=10, fill="x", expand=True)
+		cubic_btn = ttk.Button(inner, text="Cubica", command=self.cubic_scalar).pack(pady=10, fill="x", expand=True)
+		add_scalar = ttk.Button(inner, text="Sumar a un escalar", command=self.add_scalar).pack(pady=10, fill="x", expand=True)
+		subtract_scalar =  ttk.Button(inner, text="Restar a un escalar", command=self.subtract_scalar).pack(pady=10, fill="x", expand=True)
+		divide_scalar =  ttk.Button(inner, text="Dividir por un escalar", command=self.divide_scalar).pack(pady=10, fill="x", expand=True)
+		multiply_scalar =  ttk.Button(inner, text="Multiplicar por un escalar", command=self.multiply_scalar).pack(pady=10, fill="x", expand=True)
+
+		####################### Esta sección contiene lsos recuadros que contendrán las imagenes.
+
+		# Main container tiene las imágenes con las que se realizaran los calculos
+		main_container = tk.Frame(self, bg="#222831")
+		main_container.pack(fill="both", expand=True)
+		main_container.grid_columnconfigure(0, weight=1)
+		main_container.grid_columnconfigure(1, weight=1)
+
+
+		# Label
+
+		description = Label(main_container, text="Sube las imagenes con las que quieres realizar las operaciones", font=("Arial", 10, "bold"),fg="white" ,bg="#222831")
+		description.grid(row=1, column=1)
+
+		## Recuadros
+
+		self.file = tk.Canvas(main_container, width=300, height=300, bg="red")
+		self.file.id = "A"
+		self.file.bind("<Button-1>", self.load_image)
+		self.file.grid(row=2, column=0, pady=80)
+
+	def load_image(self, event):
+			
+		path = filedialog.askopenfilename()
+
+		if not path:
+			raise FileNotFoundError
+
+		canvas_clicked = event.widget
+		
+		pil_img = Image.open(path).resize((300,300)).convert("RGB")
+
+		img = ImageTk.PhotoImage(image=pil_img)
+
+		self.image[canvas_clicked.id] = pil_img
+		self.image_tk[canvas_clicked.id] = img
+
+		canvas_clicked.delete('all')
+		canvas_clicked.create_image(0,0, anchor='nw', image=img)
+
+
+
+	def square_scalar(self):
+		
+		A = np.array(self.image['A'],dtype=np.float32)/255.0
+		
+		M,N,O = A.shape
+
+		result = np.zeros((M,N,O))
+
+		result = A ** 2
+
+		self.show_result(result)
+
+		pass
+
+	def cubic_scalar(self):
+		A = np.array(self.image['A'],dtype=np.float32)/255.0
+		
+		M,N,O = A.shape
+
+		result = np.zeros((M,N,O))
+
+		result = A ** 3
+
+		self.show_result(result)
+		pass
+	def add_scalar(self):
+		self.scalar = 3 # Supongamos que el escalar esta vez es 3
+
+		A = np.array(self.image['A'],dtype=np.float32)/255.0
+		
+		M,N,O = A.shape
+
+		result = np.zeros((M,N,O))
+
+		result = A + self.scalar
+
+		self.show_result(np.clip(result, 0, 1))
+
+
+		pass
+	def subtract_scalar(self):
+
+		self.scalar = 0.4 # Supongamos que el escalar esta vez es 3
+
+		A = np.array(self.image['A'],dtype=np.float32)/255.0
+		
+		M,N,O = A.shape
+
+		result = np.zeros((M,N,O))
+
+		result = A - self.scalar
+
+		self.show_result(np.clip(result, 0, 1))
+
+		pass
+	def multiply_scalar(self):
+		self.scalar = 0.4 # Supongamos que el escalar esta vez es 3
+
+		A = np.array(self.image['A'],dtype=np.float32)/255.0
+		
+		M,N,O = A.shape
+
+		result = np.zeros((M,N,O))
+
+		result = A * self.scalar
+
+		self.show_result(np.clip(result, 0, 1))
+		pass
+	def divide_scalar(self):
+		self.scalar = 0.4 # Supongamos que el escalar esta vez es 3
+
+		A = np.array(self.image['A'],dtype=np.float32)/255.0
+		
+		M,N,O = A.shape
+
+		result = np.zeros((M,N,O))
+
+		result = A / self.scalar
+
+		self.show_result(np.clip(result, 0, 1))
+		pass
+	def show_result(self, image):
+		plt.imshow(image)
+		plt.show()
+		pass
 
 myapp = App()
 myapp.mainloop()
