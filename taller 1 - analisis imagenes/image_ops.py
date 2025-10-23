@@ -5,9 +5,21 @@ class ImageOps():
 
         pass
     
+    def truncate(self, image):
+
+        value_r = image
+
+        if image > 255.0:
+            value_r = 255.0
+        elif image < 0.0:
+            value_r = 0.0
+
+        return value_r
+
+
     def add_images(self, A,B, alpha):
 		
-        A, B = np.array(A,dtype=np.float32), np.array(B,dtype=np.float32)
+        A, B = np.array(A,dtype=np.int16), np.array(B,dtype=np.float32)
 
         M,N,O = A.shape
 
@@ -16,15 +28,14 @@ class ImageOps():
         for i in range(M):
             for j in range(N):
                 for k in range(O):
-                    result[i,j,k] = alpha * A[i,j,k] +(1-alpha)*B[i,j,k]
-            
+                    result[i,j,k] = self.truncate(alpha * A[i,j,k] +(1-alpha)*B[i,j,k])
 
-        return (np.clip(result, 0, 255).astype(np.uint8))
+        return result.astype(np.uint8)
 	
 
     def subtract_images(self, A,B):
        
-        A, B = np.array(A,dtype=np.float32), np.array(B,dtype=np.float32)
+        A, B = np.array(A,dtype=np.int16), np.array(B,dtype=np.float32)
 		
         M,N,O = A.shape
 
@@ -35,10 +46,10 @@ class ImageOps():
         for i in range(M):
             for j in range(N):
                 for k in range(O):
-                    result[i,j,k] = A[i,j,k] - B[i,j,k]
+                    result[i,j,k] = self.truncate(A[i,j,k] - B[i,j,k])
 
 
-        return np.clip(result, 0, 255).astype(np.uint8)
+        return result.astype(np.uint8)
 
 
     def multiply_images(self, A,B):
@@ -52,9 +63,9 @@ class ImageOps():
         for i in range(M):
             for j in range(N):
                 for k in range(O):
-                    result[i,j,k] = A[i,j,k] * B[i,j,k]
+                    result[i,j,k] = self.truncate(A[i,j,k] * B[i,j,k])
 
-        return (np.clip(result, 0, 255).astype(np.uint8))
+        return result.astype(np.uint8)
 
     
 
@@ -63,15 +74,17 @@ class ImageOps():
         
         M,N,O = image.shape
 
+        result = np.zeros((M,N,O))
+
         # Normalization and power of two
         for i in range(M):
             for j in range(N):
                 for k in range(O):
-                    image[i,j,k] = (image[i,j,k]/255.0)**2
+                    result[i,j,k] = self.truncate((image[i,j,k])**2)
 
 
 
-        return image
+        return result.astype(np.uint8)
 
 
     def cubic_scalar(self, A):
@@ -79,25 +92,31 @@ class ImageOps():
         image = np.array(A, dtype=np.float32)
 
         M,N,O = image.shape
+        
+        result = np.zeros((M,N,O))
 
         for i in range(M):
             for j in range(N):
                 for k in range(O):
-                    image[i,j,k] = (image[i,j,k]/255.0)**3
+                    result[i,j,k] = self.truncate((image[i,j,k])**3)
 
-        return image
+        return result.astype(np.uint8)
         
     def add_scalar(self, A, scalar):
+
+        print(scalar)
 
         image = np.array(A, dtype=np.float32)
         M,N,O = image.shape
 
+        result = np.zeros((M,N,O))
+
         for i in range(M):
             for j in range(N):
                 for k in range(O):
-                    image[i,j,k] = (image[i,j,k]/255.0) + scalar
+                    result[i,j,k] = self.truncate((image[i,j,k]) + scalar)
 
-        return (np.clip(image, 0, 1))
+        return result.astype(np.uint8)
 
 
     def subtract_scalar(self, A, scalar):
@@ -110,9 +129,9 @@ class ImageOps():
         for i in range(M):
             for j in range(N):
                 for k in range(O):
-                    image[i,j,k] = (image[i,j,k]/255.0) - scalar
+                    image[i,j,k] = self.truncate((image[i,j,k]) - scalar)
 
-        return (np.clip(image, 0, 1))
+        return image.astype(np.uint8)
 
 
     def multiply_scalar(self, A, scalar):
@@ -124,9 +143,9 @@ class ImageOps():
         for i in range(M):
             for j in range(N):
                 for k in range(O):
-                    image[i,j,k] = (image[i,j,k]/255.0) * scalar
+                    image[i,j,k] = self.truncate((image[i,j,k]) * scalar)
 
-        return (np.clip(image, 0, 1))
+        return image.astype(np.uint8)
 
 
     def divide_scalar(self, A, scalar):
@@ -138,9 +157,9 @@ class ImageOps():
         for i in range(M):
             for j in range(N):
                 for k in range(O):
-                    image[i,j,k] = (image[i,j,k]/255.0) / scalar
+                    image[i,j,k] = self.truncate((image[i,j,k]) / scalar)
 
-        return (np.clip(image, 0, 1))
+        return image.astype(np.uint8)
 
 
     

@@ -1,12 +1,10 @@
 from tkinter import ttk
 from tkinter import *
 import tkinter as tk
-from tkinter import filedialog
+from tkinter import filedialog, messagebox
 from PIL import Image, ImageTk
 import numpy as np
-
 import matplotlib.pyplot as plt
-
 from image_ops import ImageOps
 from geometric_ops import GeometricOps
 
@@ -47,14 +45,29 @@ class BaseOps(tk.Frame):
 	
 	def show_result(self, image):
 		plt.imshow(image)
+		plt.xticks([]) 
+		plt.yticks([]) 
 		plt.show()
+
+	def verify_image(self, mode):
+		if mode == 2:
+			if "A" not in self.images or "B" not in self.images:
+				messagebox.showerror("Error","Images can not be empty")
+				return False
+			return True
+		if mode == 1:
+			if "A" not in self.images:
+				messagebox.showerror("Error","Images can not be empty")
+				return False
+			return True
+
 
 
 class App(tk.Tk):
 
 	def __init__(self):
 		super().__init__()
-		self.geometry("1000x600")
+		self.geometry("1200x600")
 		self.configure(bg="#222831")
 
 		container = tk.Frame(self)
@@ -161,53 +174,44 @@ class ArithmeticView(BaseOps):
 		main_container.pack(fill="both", expand=True)
 		main_container.grid_columnconfigure(0, weight=1)
 		main_container.grid_columnconfigure(1, weight=1)
-
-
-		# Label
-
-		description = Label(main_container, text="Sube las imagenes con las que quieres realizar las operaciones", font=("Arial", 10, "bold"),fg="white" ,bg="#222831")
-		description.grid(row=1, column=1)
+	
 
 		## Recuadros
 
-		self.file_a = tk.Canvas(main_container, width=300, height=300, bg="red")
+		self.file_a = tk.Canvas(main_container, width=300, height=300, bg="white")
 		self.file_a.id = "A"
 		self.file_a.bind("<Button-1>", self.load_image)
 		self.file_a.grid(row=2, column=0, pady=80)
 
-		self.file_b = tk.Canvas(main_container, width=300, height=300, bg="red")
+		self.file_b = tk.Canvas(main_container, width=300, height=300, bg="white")
 		self.file_b.id = "B"
 		self.file_b.grid(row=2, column=1, pady=100)
 		self.file_b.bind("<Button-1>", self.load_image)
 
 	
 	def add_images(self):
-		self.show_result(operations.add_images(self.images["A"], self.images["B"], 0.5))
+		if self.verify_image(2):
+			self.show_result(operations.add_images(self.images["A"], self.images["B"], 0.5))
+		
 
 
 	def subrtact_images(self):
-
-		self.show_result(operations.subtract_images(self.images["A"], self.images["B"]))
+		if self.verify_image(2):
+			self.show_result(operations.subtract_images(self.images["A"], self.images["B"]))
 
 
 
 	def multiply(self):
-
-		self.show_result(operations.multiply_images(self.images["A"], self.images["B"]))
+		if self.verify_image(2):
+			self.show_result(operations.multiply_images(self.images["A"], self.images["B"]))
 	
-	pass
-
 
 class ArithmeticScalar(BaseOps):
 	def __init__(self, parent, controller):
 		super().__init__(parent)
 		self.controller = controller
 		self.entry = None
-		self.value = 0.5 ## Guarda el escalar. por defecto 0.5
-		# self.file = None
-		# self.image = {}
-		# self.image_tk = {}
-		# self.scalar = None
+		self.value = 5 ## Guarda el escalar. por defecto 0.5
 		self.load_widgets()
 
 
@@ -253,12 +257,10 @@ class ArithmeticScalar(BaseOps):
 
 		# Label
 
-		description = Label(main_container, text="Sube las imagenes con las que quieres realizar las operaciones", font=("Arial", 10, "bold"),fg="white" ,bg="#222831")
-		description.grid(row=1, column=1)
-
+	
 		## Recuadros
 
-		self.file = tk.Canvas(main_container, width=300, height=300, bg="red")
+		self.file = tk.Canvas(main_container, width=300, height=300, bg="white")
 		self.file.id = "A"
 		self.file.bind("<Button-1>", self.load_image)
 		self.file.grid(row=2, column=0, pady=80)
@@ -282,40 +284,40 @@ class ArithmeticScalar(BaseOps):
 		self.value = float(self.entry.get())
 
 	def square_scalar(self):
-
-		self.show_result(operations.square_scalar(self.images["A"]))
-		
-		pass
+		if self.verify_image(1):
+			self.show_result(operations.square_scalar(self.images["A"]))
 
 	def cubic_scalar(self):
 
-		self.show_result(operations.cubic_scalar(self.images["A"]))
+		if self.verify_image(1):
+			self.show_result(operations.cubic_scalar(self.images["A"]))
+		
+		
 
 		pass
         
 	def add_scalar(self):
-
-		self.show_result(operations.add_scalar(self.images["A"], self.value))
-		pass
+		if self.verify_image(1):
+			self.show_result(operations.add_scalar(self.images["A"], self.value))
 
 
 	def subtract_scalar(self):
 
-		self.show_result(operations.subtract_scalar(self.images["A"], self.value))
+		if self.verify_image(1):
+			self.show_result(operations.subtract_scalar(self.images["A"], self.value))
 
 		pass
 
 
 	def multiply_scalar(self):
-
-		self.show_result(operations.multiply_scalar(self.images["A"], self.value))
-
-		pass
+		
+		if self.verify_image(1):
+			self.show_result(operations.multiply_scalar(self.images["A"], self.value))
 
 
 	def divide_scalar(self):
-		self.show_result(operations.divide_scalar(self.images["A"], self.value))
-		pass
+		if self.verify_image(1):
+			self.show_result(operations.divide_scalar(self.images["A"], self.value))
 
 
 class GeometricView(BaseOps):
@@ -324,193 +326,129 @@ class GeometricView(BaseOps):
 		self.controller = controller
 		self.entry = None
 		self.value = 0.5 ## Guarda el escalar. por defecto 0.5
-		# self.file = None
-		# self.image = {}
-		# self.image_tk = {}
-		# self.scalar = None
+
+		## Definimos los atributos que contendrán los widgets entry
+
+		self.bx = None
+		self.by = None
+		self.theta = None
+
+		## Definimos los atributos que contendrán los valores ingresados
+
+		self.bx_value = 0
+		self.by_value = 0
+		self.theta_value = 0
+
+		## Cargamos los widgets.
+
 		self.load_widgets()
 
 
 	def load_widgets(self):
 
-		lab = Label(self, text="IMAGELAB", font=("Arial", 28, "bold"),fg="white" ,bg="#222831")
-		lab.pack(side="top", fill="both")
+		lab = Label(self, text="IMAGELAB", font=("Arial", 28, "bold"), fg="white", bg="#222831")
+		lab.pack(side="top", fill="x")
 
+		con = tk.Frame(self, bg="#222831")
+		con.pack(side="right", fill="y", padx=(0, 10), pady=10)
 
-		## Sidebar que contendrá los botones en lista de las operaciones a realizar
-		con = tk.Frame(self, bg ="#222831")
-		con.pack(fill='y', side="right")
-		
-		lab = Label(con, text="Operaciones", font=("Arial", 28, "bold"),fg="white" ,bg="#222831")
-		lab.pack(side="top", fill="both")
+		lab = Label(con, text="Operaciones", font=("Arial", 20, "bold"), fg="white", bg="#222831")
+		lab.pack(anchor="n", pady=10)
 
+		btn_list_container = tk.Frame(con, bg="#393E46")
+		btn_list_container.pack(fill="y", padx=10, pady=10)
 
-		btn_list_container = tk.Frame(con, bg ="#222831")
-		btn_list_container.grid_columnconfigure(0, weight=1)
-		btn_list_container.pack(fill='y', side="right")
+		inner = tk.Frame(btn_list_container, bg="#393E46")
+		inner.pack(expand=True, fill="y", padx=10, pady=10)
 
+		traslate_frame = tk.LabelFrame(inner, text="Traslación", fg="white", bg="#393E46", font=("Arial", 12, "bold"), labelanchor="n")
+		traslate_frame.pack(fill="x", pady=10)
 
-		inner = tk.Frame(btn_list_container, bg="#222831")
-		inner.pack(expand=True, fill="y")
+		translate_btn = ttk.Button(traslate_frame, text="Trasladar", command=self.traslation)
+		translate_btn.pack(fill="x", padx=10, pady=(10, 5))
 
+		entries_frame = tk.Frame(traslate_frame, bg="#393E46")
+		entries_frame.pack(pady=5)
 
+		bx_frame = tk.Frame(entries_frame, bg="#393E46")
+		bx_frame.pack(side="left", padx=10)
+		bx_label = tk.Label(bx_frame, text="bx", fg="#ffffff", bg="#393E46")
+		bx_label.pack(anchor="w")
+		self.bx = tk.Entry(bx_frame)
+		self.bx.pack()
 
-		rotate_btn = ttk.Button(inner, text="Rotar", style="TButton", command=self.rotate).pack(pady=10, fill="x", expand=True)
-		translate_btn = ttk.Button(inner, text="Trasladar", command=self.translate).pack(pady=10, fill="x", expand=True)
-		
-		####################### Esta sección contiene lsos recuadros que contendrán las imagenes.
+		by_frame = tk.Frame(entries_frame, bg="#393E46")
+		by_frame.pack(side="left", padx=10)
+		by_label = tk.Label(by_frame, text="by", fg="#ffffff", bg="#393E46")
+		by_label.pack(anchor="w")
+		self.by = tk.Entry(by_frame)
+		self.by.pack()
 
-		# Main container tiene las imágenes con las que se realizaran los calculos
+		set_bxby_btn = tk.Button(traslate_frame, text="OK", command=self.set_traslate_values)
+		set_bxby_btn.pack(pady=(5, 10))
+
+		rotation_frame = tk.LabelFrame(inner, text="Rotación", fg="white", bg="#393E46", font=("Arial", 12, "bold"), labelanchor="n")
+		rotation_frame.pack(fill="x", pady=10)
+
+		rotate_btn = ttk.Button(rotation_frame, text="Rotar", command=self.rotation)
+		rotate_btn.pack(fill="x", padx=10, pady=(10, 5))
+
+		entry_frame = tk.Frame(rotation_frame, bg="#393E46")
+		entry_frame.pack(pady=5)
+
+		theta_frame = tk.Frame(entry_frame, bg="#393E46")
+		theta_frame.pack()
+		theta_label = tk.Label(theta_frame, text="Theta", fg="#ffffff", bg="#393E46")
+		theta_label.pack(anchor="w")
+		self.theta = tk.Entry(theta_frame)
+		self.theta.pack()
+
+		set_theta_btn = tk.Button(rotation_frame, text="OK", command=self.set_theta_values)
+		set_theta_btn.pack(pady=(5, 10))
+
 		main_container = tk.Frame(self, bg="#222831")
 		main_container.pack(fill="both", expand=True)
 		main_container.grid_columnconfigure(0, weight=1)
 		main_container.grid_columnconfigure(1, weight=1)
 
-
-		# Label
-
-		description = Label(main_container, text="Sube las imagenes con las que quieres realizar las operaciones", font=("Arial", 10, "bold"),fg="white" ,bg="#222831")
-		description.grid(row=1, column=1)
-
-		## Recuadros
-
-		self.file = tk.Canvas(main_container, width=300, height=300, bg="red")
+		self.file = tk.Canvas(main_container, width=300, height=300, bg="white")
 		self.file.id = "A"
 		self.file.bind("<Button-1>", self.load_image)
 		self.file.grid(row=2, column=0, pady=80)
 
 
-	def rotate(self):
-		pass
-
-	def translate(self):
-
-		bx = 50
-		by = 40
-
-		self.show_result(geometricops.traslation(bx,by, self.images["A"]))
-
-		pass
-
-
-
-class GeometricTransformations(BaseOps):
-	def __init__(self, parent, controller):
-		super().__init__(parent)
-		self.controller = controller
-		self.entry = None
-		self.value = 0.5 ## Guarda el escalar. por defecto 0.5
-		self.load_widgets()
-
-
-	def load_widgets(self):
-
-		lab = Label(self, text="IMAGELAB", font=("Arial", 28, "bold"),fg="white" ,bg="#222831")
-		lab.pack(side="top", fill="both")
-
-
-		## Sidebar que contendrá los botones en lista de las operaciones a realizar
-		con = tk.Frame(self, bg ="#222831")
-		con.pack(fill='y', side="right")
+	def set_traslate_values(self):
 		
-		lab = Label(con, text="Operaciones", font=("Arial", 28, "bold"),fg="white" ,bg="#222831")
-		lab.pack(side="top", fill="both")
+		if self.bx.get() or self.by.get():
+			self.bx_value = int(self.bx.get())
+			self.by_value = int(self.by.get())
+		else:
+			messagebox.showerror("Error", "bx or by is empty")
 
 
-		btn_list_container = tk.Frame(con, bg ="#222831")
-		btn_list_container.grid_columnconfigure(0, weight=1)
-		btn_list_container.pack(fill='y', side="right")
+	def set_theta_values(self):
+
+		if self.theta.get():
+			self.theta_value = int(self.theta.get())
+		else:
+			messagebox.showerror("Error", "Theta entry is empty")
 
 
-		inner = tk.Frame(btn_list_container, bg="#222831")
-		inner.pack(expand=True, fill="y")
+	
+	def rotation(self):
 
-
-
-		square_btn = ttk.Button(inner, text="Funcion cuadrada", style="TButton", command=self.square_scalar).pack(pady=10, fill="x", expand=True)
-		cubic_btn = ttk.Button(inner, text="Cubica", command=self.cubic_scalar).pack(pady=10, fill="x", expand=True)
-		add_scalar = ttk.Button(inner, text="Sumar a un escalar", command=self.add_scalar).pack(pady=10, fill="x", expand=True)
-		subtract_scalar =  ttk.Button(inner, text="Restar a un escalar", command=self.subtract_scalar).pack(pady=10, fill="x", expand=True)
-		divide_scalar =  ttk.Button(inner, text="Dividir por un escalar", command=self.divide_scalar).pack(pady=10, fill="x", expand=True)
-		multiply_scalar =  ttk.Button(inner, text="Multiplicar por un escalar", command=self.multiply_scalar).pack(pady=10, fill="x", expand=True)
-
-		####################### Esta sección contiene lsos recuadros que contendrán las imagenes.
-
-		# Main container tiene las imágenes con las que se realizaran los calculos
-		main_container = tk.Frame(self, bg="#222831")
-		main_container.pack(fill="both", expand=True)
-		main_container.grid_columnconfigure(0, weight=1)
-		main_container.grid_columnconfigure(1, weight=1)
-
-
-		# Label
-
-		description = Label(main_container, text="Sube las imagenes con las que quieres realizar las operaciones", font=("Arial", 10, "bold"),fg="white" ,bg="#222831")
-		description.grid(row=1, column=1)
-
-		## Recuadros
-
-		self.file = tk.Canvas(main_container, width=300, height=300, bg="red")
-		self.file.id = "A"
-		self.file.bind("<Button-1>", self.load_image)
-		self.file.grid(row=2, column=0, pady=80)
-
-
-		## Frame para escalar
-
-		scalar_frame = tk.Frame(self, bg="#222831")
-		scalar_frame.pack(fill="y")
-		scalar_frame.grid_columnconfigure(0, weight=1)
-
-		self.entry = tk.Entry(scalar_frame)
-		self.entry.pack( fill="y", side="left")
-
-		set_scalar_btn = tk.Button(scalar_frame, text="Set scalar", command=self.set_scalar)
-		set_scalar_btn.pack(fill="y", side="right")
+		if self.verify_image(1):
+			result = geometricops.rotation(self.theta_value, self.images["A"])
+			self.show_result(result)					
+		pass
+	
+	def traslation(self):
 		
-
-
-	def set_scalar(self):
-		self.value = float(self.entry.get())
-
-	def square_scalar(self):
-
-		self.show_result(operations.square_scalar(self.images["A"]))
-		
-		pass
-
-	def cubic_scalar(self):
-
-		self.show_result(operations.cubic_scalar(self.images["A"]))
+		if self.verify_image(1):
+			result = geometricops.traslation(self.bx_value, self.by_value, self.images["A"])
+			self.show_result(result)
 
 		pass
-        
-	def add_scalar(self):
-
-		self.show_result(operations.add_scalar(self.images["A"], self.value))
-		pass
-
-
-	def subtract_scalar(self):
-
-		self.show_result(operations.subtract_scalar(self.images["A"], self.value))
-
-		pass
-
-
-	def multiply_scalar(self):
-
-		self.show_result(operations.multiply_scalar(self.images["A"], self.value))
-
-		pass
-
-
-	def divide_scalar(self):
-		self.show_result(operations.divide_scalar(self.images["A"], self.value))
-		pass
-
-
-
 
 myapp = App()
 myapp.mainloop()
